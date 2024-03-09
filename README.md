@@ -124,20 +124,20 @@ Through plex-scanner, the scanning range can be reduced to the folder where the 
 ## Example
 After running plex-scanner, follow the prompts to enter the name of the folder you want to scan. If you need to scan multiple folders, you can enter them one by one, or use `;` to separate multiple folder names, supporting multi-level directories.
 ```
-请输入要扫描的文件夹名称，多个文件夹名称用分号隔开：彗星来的那一夜 (2013)
+Please enter the folder name(s) you want to scan, separating multiple names with semicolons: Coherence (2013)
 
-成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/彗星来的那一夜 (2013)
+Successfully triggered Plex to scan the folder: /Users/x1ao4/Media/Ali/Movies/Coherence (2013)
 
-请输入要扫描的文件夹名称，多个文件夹名称用分号隔开：兰戈 (2011)；洛基 (2021)/洛基 - S02；花儿与少年 (2014)
+Please enter the folder name(s) you want to scan, separating multiple names with semicolons: Rango (2011);Loki (2021)/Loki - S02;DIVAS Hit The Road (2014)
 
-成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/兰戈 (2011)
-成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电视剧/洛基 (2021)/洛基 - S02
-成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/综艺/花儿与少年 (2014)
+Successfully triggered Plex to scan the folder: /Users/x1ao4/Media/Ali/Movies/Rango (2011)
+Successfully triggered Plex to scan the folder: /Users/x1ao4/Media/Ali/TV/Loki (2021)/Loki - S02
+Successfully triggered Plex to scan the folder: /Users/x1ao4/Media/Ali/Variety/DIVAS Hit The Road (2014)
 
-请输入要扫描的文件夹名称，多个文件夹名称用分号隔开：周六夜现场 (1975)/周六夜现场 - S49；爱乐之城 (2016)
+Please enter the folder name(s) you want to scan, separating multiple names with semicolons: Saturday Night Live (1975)/Saturday Night Live - S49;La La Land (2016)
 
-成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/综艺/周六夜现场 (1975)/周六夜现场 - S49
-成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/爱乐之城 (2016)
+Successfully triggered Plex to scan the folder: /Users/x1ao4/Media/Ali/Variety/Saturday Night Live (1975)/Saturday Night Live - S49
+Successfully triggered Plex to scan the folder: /Users/x1ao4/Media/Ali/Movies/La La Land (2016)
 ```
 
 ## Requirements
@@ -159,18 +159,18 @@ continuous_mode = True
 
 [directories]
 # Specify the parent directories of the folders to be scanned, formatted as LibraryName = Directory1;Directory2;Directory3
-电影 = /Users/x1ao4/Media/阿里资源主/影视/电影
-电视剧 = /Users/x1ao4/Media/阿里资源主/影视/电视剧；/Users/x1ao4/Media/迅雷云盘/电视剧
-综艺 = /Users/x1ao4/Media/阿里资源主/影视/综艺
+Movies = /Users/x1ao4/Media/Ali/Movies
+TV = /Users/x1ao4/Media/Ali/TV；/Users/x1ao4/Media/Xunlei/TV
+Variety = /Users/x1ao4/Media/Ali/Variety
 
 [libraries]
 # Specify the libraries where the folders to be scanned are located, formatted as LibraryName1;LibraryName2;LibraryName3. If this item is not set and [directories] is empty, it will default that the folders to be scanned may be located in any library
-libraries = 电影；电视剧；综艺
+libraries = Movies;TV;Variety
 
 [exclude_directories]
 # Specify the parent directories to be excluded, formatted as LibraryName = Directory1;Directory2;Directory3. If this item is set, the folders under these directories will be ignored during scanning
-电影 = /Users/x1ao4/Media/夸克主盘/电影；/Users/x1ao4/Media/天翼云盘/电影
-综艺 = /Users/x1ao4/Media/阿里资源副/影视/综艺
+Movies = /Users/x1ao4/Media/Quark/Movies；/Users/x1ao4/Media/Baidu/Movies
+Variety = /Users/x1ao4/Media/PikPak/Variety
 ```
 Only `[server]` and `[mode]` are required items in the configuration file, other items can be set as needed, or left blank.
 
@@ -180,9 +180,9 @@ plex-scanner works by using the `[directories]`, `[libraries]`, and `[exclude_di
 For example, when the configuration is as follows:
 ```
 [directories]
-电影 = /Users/x1ao4/Media/阿里资源主/影视/电影
-电视剧 = /Users/x1ao4/Media/阿里资源主/影视/电视剧；/Users/x1ao4/Media/迅雷云盘/电视剧
-综艺 = /Users/x1ao4/Media/阿里资源主/影视/综艺
+Movies = /Users/x1ao4/Media/Ali/Movies
+TV = /Users/x1ao4/Media/Ali/TV；/Users/x1ao4/Media/Xunlei/TV
+Variety = /Users/x1ao4/Media/Ali/Variety
 
 [libraries]
 libraries = 
@@ -192,12 +192,12 @@ libraries =
 ```
 If the user enters the folder name `Gone with the Wind (1939)`, the script will build the following directories in the background:
 ```
-/Users/x1ao4/Media/阿里资源主/影视/电影/乱世佳人 (1939)
-/Users/x1ao4/Media/阿里资源主/影视/电视剧/乱世佳人 (1939)
-/Users/x1ao4/Media/迅雷云盘/电视剧/乱世佳人 (1939)
-/Users/x1ao4/Media/阿里资源主/影视/综艺/乱世佳人 (1939)
+/Users/x1ao4/Media/Ali/Movies/Gone with the Wind (1939)
+/Users/x1ao4/Media/Ali/TV/Gone with the Wind (1939)
+/Users/x1ao4/Media/Xunlei/TV/Gone with the Wind (1939)
+/Users/x1ao4/Media/Ali/Variety/Gone with the Wind (1939)
 ```
-Then exclude directories that do not exist, filter out the real existing folder path `/Users/x1ao4/Media/阿里资源主/影视/电影/乱世佳人 (1939)` for scanning.
+Then exclude directories that do not exist, filter out the real existing folder path `/Users/x1ao4/Media/Ali/Movies/Gone with the Wind (1939)` for scanning.
 
 plex-scanner provides two ways to set the directory prefix: `[directories]` and `[libraries]`. In fact, these two options are used to set the directory range where the updated files may exist, and you can choose one to configure.
 
