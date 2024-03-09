@@ -160,7 +160,7 @@ continuous_mode = True
 [directories]
 # Specify the parent directories of the folders to be scanned, formatted as LibraryName = Directory1;Directory2;Directory3
 Movies = /Users/x1ao4/Media/Ali/Movies
-TV = /Users/x1ao4/Media/Ali/TV；/Users/x1ao4/Media/Xunlei/TV
+TV = /Users/x1ao4/Media/Ali/TV;/Users/x1ao4/Media/Xunlei/TV
 Variety = /Users/x1ao4/Media/Ali/Variety
 
 [libraries]
@@ -169,7 +169,7 @@ libraries = Movies;TV;Variety
 
 [exclude_directories]
 # Specify the parent directories to be excluded, formatted as LibraryName = Directory1;Directory2;Directory3. If this item is set, the folders under these directories will be ignored during scanning
-Movies = /Users/x1ao4/Media/Quark/Movies；/Users/x1ao4/Media/Baidu/Movies
+Movies = /Users/x1ao4/Media/Quark/Movies;/Users/x1ao4/Media/Baidu/Movies
 Variety = /Users/x1ao4/Media/PikPak/Variety
 ```
 Only `[server]` and `[mode]` are required items in the configuration file, other items can be set as needed, or left blank.
@@ -181,7 +181,7 @@ For example, when the configuration is as follows:
 ```
 [directories]
 Movies = /Users/x1ao4/Media/Ali/Movies
-TV = /Users/x1ao4/Media/Ali/TV；/Users/x1ao4/Media/Xunlei/TV
+TV = /Users/x1ao4/Media/Ali/TV;/Users/x1ao4/Media/Xunlei/TV
 Variety = /Users/x1ao4/Media/Ali/Variety
 
 [libraries]
@@ -208,7 +208,7 @@ In simple terms, if there are fewer directories that need manual scanning, you c
 
 The directory you need to fill in when configuring is the directory you used when adding folders to the media library, for example:
 
-<img width="100%" alt="dir1" src="https://github.com/x1ao4/plex-scanner/assets/112841659/337e46a1-2350-4c31-abb1-a6addd560cb8">
+<img width="100%" alt="dir2" src="https://github.com/x1ao4/plex-scanner/assets/112841659/1a81715a-7581-4210-92a3-86ca68d14a74">
 
 ## Usage
 1. Clone or download the repository to a directory on your computer.
