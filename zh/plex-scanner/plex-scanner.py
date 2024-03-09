@@ -7,44 +7,56 @@ import xml.etree.ElementTree as ET
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-# 从配置文件中获取服务器地址和 token
+# 获取服务器地址和 token
 plex_server = config.get('server', 'address')
 plex_token = config.get('server', 'token')
 
-# 从配置文件中获取连续扫描模式的开关状态
+# 获取连续扫描模式的开关状态
 continuous_mode = config.getboolean('mode', 'continuous_mode')
 
-# 获取所有库的 ID 和对应的文件夹
-response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
-root = ET.fromstring(response.content)
-directories = root.findall('Directory')
-
-# 定义 user_libraries
-libraries_value = config.get('libraries', 'libraries').strip()
-if libraries_value:
-    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories if directory.get('title') in libraries_value.split('；')}
-else:
-    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories}
-
-# 检查[directories]是否存在
+# 检查 [directories] 是否存在
 if config.has_section('directories'):
     user_directories = {k: v.split('；') for k, v in config.items('directories')}
 else:
-    user_directories = user_libraries
+    user_directories = None
 
-# 通过[exclude_directories]排除掉用户设置的需要排除的文件夹
+# 获取库目录
+libraries_value = config.get('libraries', 'libraries').strip()
+if libraries_value and not user_directories:
+    # 获取指定库的目录
+    response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
+    root = ET.fromstring(response.content)
+    directories = root.findall('Directory')
+    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories if directory.get('title') in libraries_value.split('；')}
+elif not user_directories:
+    # 获取所有库的目录
+    response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
+    root = ET.fromstring(response.content)
+    directories = root.findall('Directory')
+    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories}
+else:
+    user_libraries = {}
+
+# 获取候选目录
+if not user_directories:
+    candidate_directories = user_libraries
+else:
+    candidate_directories = user_directories
+
+# 通过 [exclude_directories] 排除掉用户设置的需要排除的目录
 if config.has_section('exclude_directories'):
     exclude_directories = {k: v.split('；') for k, v in config.items('exclude_directories')}
     final_directories = {}
-    for lib, folders in (user_directories if user_directories else user_libraries).items():
+    for lib, folders in candidate_directories.items():
         if lib in exclude_directories:
             final_directories[lib] = [folder for folder in folders if folder not in exclude_directories[lib]]
         else:
             final_directories[lib] = folders
-else:
-    final_directories = user_directories if user_directories else user_libraries
 
-# 定义 library_ids
+# 获取库 ID
+response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
+root = ET.fromstring(response.content)
+directories = root.findall('Directory')
 library_ids = {directory.get('title'): directory.get('key') for directory in directories if directory.get('title') in final_directories}
 
 def refresh_plex_folder(folder_name):
