@@ -2,6 +2,6 @@
 
 cd C:\path\to\plex-scanner
 
-python plex-scanner.py
+python3 plex-scanner.py
 
 pause
