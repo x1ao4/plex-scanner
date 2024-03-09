@@ -110,4 +110,119 @@ plex-scanner 提供了两种设置目录前缀的方式：`[directories]` 和 `[
 - 请确保运行脚本的设备可以连接到您的服务器。
 - 脚本在某些情况下会触发媒体库刷新其他项目的元数据，但并不会触发非指定文件夹的扫描动作。
 - 在输入文件夹名称时若使用了删除键，会导致无法正确识别文件夹名称，请确保输入过程中不要输错字符，最好直接复制粘贴。
+<br>
+
+# plex-scanner
+Due to Plex’s native lack of support for automatic and partial scanning of mounted directories, it’s inconvenient for us to manage media files from mounted directories in our media library. New files will not be automatically added to the library. We often need to manually scan/refresh or schedule scans to add new files from mounted directories to the library, which is very inconvenient for cloud drive users.
+
+Although there are already some means to indirectly achieve functions similar to automatic scanning and partial scanning, such as CloudDrive’s file change notifications, or other scripts that periodically traverse or scan specified directories, there may also be certain limitations. So, I wrote a script myself that can quickly implement partial scanning in a more convenient, flexible, and faster way by manually entering the folder name.
+
+When your cloud drive updates a movie file, the smallest range of scanning you can achieve in Plex is to scan all directories in the library where the movie is located, that is, click on “Scan Library Files” of the corresponding library. When your cloud drive series is updated, the smallest range of scanning you can achieve in Plex is to scan all directories corresponding to the series, that is, click on “Refresh Metadata” of the series.
+
+Through plex-scanner, the scanning range can be reduced to the folder where the new file is located, that is, it can only scan the folder where the new movie file is located, or only scan the folder of the season where the new episode file is located, etc., thereby achieving partial scanning of the mounted directory. plex-scanner can perform partial scanning on any directory of any type of library.
+
+## Example
+After running plex-scanner, follow the prompts to enter the name of the folder you want to scan. If you need to scan multiple folders, you can enter them one by one, or use `;` to separate multiple folder names, supporting multi-level directories.
+```
+请输入要扫描的文件夹名称，多个文件夹名称用分号隔开：彗星来的那一夜 (2013)
+
+成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/彗星来的那一夜 (2013)
+
+请输入要扫描的文件夹名称，多个文件夹名称用分号隔开：兰戈 (2011)；洛基 (2021)/洛基 - S02；花儿与少年 (2014)
+
+成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/兰戈 (2011)
+成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电视剧/洛基 (2021)/洛基 - S02
+成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/综艺/花儿与少年 (2014)
+
+请输入要扫描的文件夹名称，多个文件夹名称用分号隔开：周六夜现场 (1975)/周六夜现场 - S49；爱乐之城 (2016)
+
+成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/综艺/周六夜现场 (1975)/周六夜现场 - S49
+成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/爱乐之城 (2016)
+```
+
+## Requirements
+- Installed Python 3.0 or higher.
+- Installed required third-party library: requests. (Install with `pip3 install requests`)
+
+## Config
+Before running the script, please open the configuration file `config.ini` and configure it according to the following prompts (examples).
+```
+[server]
+# Address of the Plex server, formatted as http://server IP address:32400 or http(s)://domain:port
+address = http://127.0.0.1:32400
+# Token of the Plex server for authentication
+token = xxxxxxxxxxxxxxxxxxxx
+
+[mode]
+# Switch for continuous scanning mode, if set to True, multiple scan requests can be made continuously; if set to False, the script will end after processing the request
+continuous_mode = True
+
+[directories]
+# Specify the parent directories of the folders to be scanned, formatted as LibraryName = Directory1;Directory2;Directory3
+电影 = /Users/x1ao4/Media/阿里资源主/影视/电影
+电视剧 = /Users/x1ao4/Media/阿里资源主/影视/电视剧；/Users/x1ao4/Media/迅雷云盘/电视剧
+综艺 = /Users/x1ao4/Media/阿里资源主/影视/综艺
+
+[libraries]
+# Specify the libraries where the folders to be scanned are located, formatted as LibraryName1;LibraryName2;LibraryName3. If this item is not set and [directories] is empty, it will default that the folders to be scanned may be located in any library
+libraries = 电影；电视剧；综艺
+
+[exclude_directories]
+# Specify the parent directories to be excluded, formatted as LibraryName = Directory1;Directory2;Directory3. If this item is set, the folders under these directories will be ignored during scanning
+电影 = /Users/x1ao4/Media/夸克主盘/电影；/Users/x1ao4/Media/天翼云盘/电影
+综艺 = /Users/x1ao4/Media/阿里资源副/影视/综艺
+```
+Only `[server]` and `[mode]` are required items in the configuration file, other items can be set as needed, or left blank.
+
+## How the Script Works
+plex-scanner works by using the `[directories]`, `[libraries]`, and `[exclude_directories]` in the configuration file to filter out directory prefixes. It then combines these with the `folder name` provided by the user to construct potential paths for the folders that need to be scanned. By checking whether these paths exist, it filters out the actual paths of the folders that need to be scanned and performs the scanning.
+
+For example, when the configuration is as follows:
+```
+[directories]
+电影 = /Users/x1ao4/Media/阿里资源主/影视/电影
+电视剧 = /Users/x1ao4/Media/阿里资源主/影视/电视剧；/Users/x1ao4/Media/迅雷云盘/电视剧
+综艺 = /Users/x1ao4/Media/阿里资源主/影视/综艺
+
+[libraries]
+libraries = 
+
+[exclude_directories]
+
+```
+If the user enters the folder name `Gone with the Wind (1939)`, the script will build the following directories in the background:
+```
+/Users/x1ao4/Media/阿里资源主/影视/电影/乱世佳人 (1939)
+/Users/x1ao4/Media/阿里资源主/影视/电视剧/乱世佳人 (1939)
+/Users/x1ao4/Media/迅雷云盘/电视剧/乱世佳人 (1939)
+/Users/x1ao4/Media/阿里资源主/影视/综艺/乱世佳人 (1939)
+```
+Then exclude directories that do not exist, filter out the real existing folder path `/Users/x1ao4/Media/阿里资源主/影视/电影/乱世佳人 (1939)` for scanning.
+
+plex-scanner provides two ways to set the directory prefix: `[directories]` and `[libraries]`. In fact, these two options are used to set the directory range where the updated files may exist, and you can choose one to configure.
+
+- `[directories]`: If the files you need to scan are concentrated in a few directories, you can use `[directories]` to specify these directories, leaving `[libraries]` and `[exclude_directories]` blank.
+- `[libraries]`: If the files you need to scan are more scattered and belong to many directories, you can use `[libraries]` to specify libraries. The script will automatically obtain all directories of these libraries (if `[libraries]` is empty, it will obtain all directories of all libraries), and then use `[exclude_directories]` to exclude directories that do not need manual scanning, leaving `[directories]` blank.
+
+In simple terms, if there are fewer directories that need manual scanning, you can choose to configure `[directories]`; if there are more directories, you can choose to configure `[libraries]` and `[exclude_directories]`. If all three options are left blank (default settings), it means that all directories of all libraries on the server will be used as directory prefixes, and then matched with the folder names provided by the user to find out the folders that need to be scanned.
+
+The directory you need to fill in when configuring is the directory you used when adding folders to the media library, for example:
+
+<img width="100%" alt="dir1" src="https://github.com/x1ao4/plex-scanner/assets/112841659/337e46a1-2350-4c31-abb1-a6addd560cb8">
+
+## Usage
+1. Clone or download the repository to a directory on your computer.
+2. Modify the path in `start.command (Mac)` or `start.bat (Win)` to point to the directory where you store the `plex-scanner.py` script.
+3. Open `config.ini`, fill in your Plex server address (`address`) and [X-Plex-Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/) (`token`), and fill in other configuration options as needed.
+4. Double-click `start.command` or `start.bat` to execute the `plex-scanner.py` script.
+5. Follow the prompts to enter the `folder name` and press Enter.
+6. The script will trigger Plex to scan the corresponding folder according to the configuration file and display the scanning result in the console (you can also view the scanning record in the server’s “Settings - Status - Alerts”). If there is no return scanning result, it means that the scanning failed. Please check whether your input folder name or configuration range is incorrect.
+
+## Notes
+- Make sure you've provided the correct Plex server address and X-Plex-Token.
+- Make sure you have provided the correct library names, directories, and folder names.
+- Make sure the device running the script can connect to your server.
+- The script may trigger the media library to refresh other items’ metadata in some cases, but it will not trigger the scanning action of non-specified folders.
+- Using the delete key while entering folder names will cause the folder names to not be recognized correctly. Please make sure not to input wrong characters during the input process, preferably copy and paste directly.
+
 
