@@ -7,44 +7,56 @@ import xml.etree.ElementTree as ET
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-# Get the server address and token from the configuration file
+# Get the server address and token
 plex_server = config.get('server', 'address')
 plex_token = config.get('server', 'token')
 
-# Get the continuous scanning mode switch status from the configuration file
+# Get the status of the continuous scanning mode switch
 continuous_mode = config.getboolean('mode', 'continuous_mode')
-
-# Get all library IDs and corresponding folders
-response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
-root = ET.fromstring(response.content)
-directories = root.findall('Directory')
-
-# Define user_libraries
-libraries_value = config.get('libraries', 'libraries').strip()
-if libraries_value:
-    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories if directory.get('title') in libraries_value.split(';')}
-else:
-    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories}
 
 # Check if [directories] exists
 if config.has_section('directories'):
     user_directories = {k: v.split(';') for k, v in config.items('directories')}
 else:
-    user_directories = user_libraries
+    user_directories = None
 
-# Exclude the folders that the user needs to exclude through [exclude_directories]
+# Get library directories
+libraries_value = config.get('libraries', 'libraries').strip()
+if libraries_value and not user_directories:
+    # Get the directories of the specified libraries
+    response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
+    root = ET.fromstring(response.content)
+    directories = root.findall('Directory')
+    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories if directory.get('title') in libraries_value.split(';')}
+elif not user_directories:
+    # Get the directories of all libraries
+    response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
+    root = ET.fromstring(response.content)
+    directories = root.findall('Directory')
+    user_libraries = {directory.get('title'): [location.get('path') for location in directory.findall('Location')] for directory in directories}
+else:
+    user_libraries = {}
+
+# Get candidate directories
+if not user_directories:
+    candidate_directories = user_libraries
+else:
+    candidate_directories = user_directories
+
+# Exclude the directories that the user needs to exclude through [exclude_directories]
 if config.has_section('exclude_directories'):
     exclude_directories = {k: v.split(';') for k, v in config.items('exclude_directories')}
     final_directories = {}
-    for lib, folders in (user_directories if user_directories else user_libraries).items():
+    for lib, folders in candidate_directories.items():
         if lib in exclude_directories:
             final_directories[lib] = [folder for folder in folders if folder not in exclude_directories[lib]]
         else:
             final_directories[lib] = folders
-else:
-    final_directories = user_directories if user_directories else user_libraries
 
-# Define library_ids
+# Get library IDs
+response = requests.get(f"{plex_server}/library/sections?X-Plex-Token={plex_token}")
+root = ET.fromstring(response.content)
+directories = root.findall('Directory')
 library_ids = {directory.get('title'): directory.get('key') for directory in directories if directory.get('title') in final_directories}
 
 def refresh_plex_folder(folder_name):
@@ -54,7 +66,7 @@ def refresh_plex_folder(folder_name):
     if not hasattr(refresh_plex_folder, "first_failure"):
         refresh_plex_folder.first_failure = True
 
-    # Construct the complete folder path and trigger Plex scan
+    # Construct the full folder path and trigger Plex scan
     for library, folder_prefixes in final_directories.items():
         for folder_prefix in folder_prefixes:
             folder_path = os.path.join(folder_prefix, folder_name)
@@ -96,6 +108,6 @@ while True:
     for folder_name in folder_names:
         refresh_plex_folder(folder_name.strip())
 
-    # If continuous mode is off, stop running after the scan is complete
+    # If the continuous mode is off, end the run after the scan is complete
     if not continuous_mode:
         break
