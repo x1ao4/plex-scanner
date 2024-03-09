@@ -27,9 +27,6 @@
 成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/综艺/周六夜现场 (1975)/周六夜现场 - S49
 成功触发Plex扫描文件夹：/Users/x1ao4/Media/阿里资源主/影视/电影/爱乐之城 (2016)
 ```
-你可以在服务器的「设置 - 状态 - 警告」中查看扫描记录，例如：
-
-<img width="715" alt="scan1" src="https://github.com/x1ao4/plex-scanner/assets/112841659/67d37105-680a-462d-9ee6-d40036c4ac5f">
 
 ## 运行条件
 - 安装了 Python 3.0 或更高版本。
@@ -95,21 +92,19 @@ plex-scanner 提供了两种设置目录前缀的方式：`[directories]` 和 `[
 - `[directories]`：假如你需要通过手动局部扫描入库的文件都集中在某几个目录内，可以使用 `[directories]` 来指定这些目录，把 `[libraries]` 和 `[exclude_directories]` 留空。
 - `[libraries]`：假如你需要通过手动局部扫描入库的文件比较分散，他们所属的目录比较多，可以使用 `[libraries]` 来指定库，脚本会自动获取这些库的所有目录（若 `[libraries]` 为空则会获取所有库的所有目录），然后你可以使用 `[exclude_directories]` 排除掉不需要手动扫描的目录，把 `[directories]` 留空。
 
-简单说就是需要手动扫描的目录较少可以选择配置 `[directories]`，较多可以选择配置 `[libraries]` 和 `[exclude_directories]`，脚本会通过这两个设置筛选出目录前缀，然后与用户提供的文件夹名称分别进行配对，找出需要被扫描的文件夹进行扫描。若这三个选项全部留空（默认设置），表示会使用服务器上的所有库的所有目录作为目录前缀，然后与用户提供的文件夹名称分别进行配对，找出需要被扫描的文件夹进行扫描。
+简单说就是需要手动扫描的目录较少可以选择配置 `[directories]`，较多可以选择配置 `[libraries]` 和 `[exclude_directories]`，若这三个选项全部留空（默认设置），表示会使用服务器上的所有库的所有目录作为目录前缀，然后与用户提供的文件夹名称分别进行配对，找出需要被扫描的文件夹进行扫描。
 
 配置时需要填写的目录也就是你在媒体库添加文件夹时使用的目录，例如：
 
-<img width="715" alt="dir1" src="https://github.com/x1ao4/plex-scanner/assets/112841659/337e46a1-2350-4c31-abb1-a6addd560cb8">
+<img width="100%" alt="dir1" src="https://github.com/x1ao4/plex-scanner/assets/112841659/337e46a1-2350-4c31-abb1-a6addd560cb8">
 
 ## 使用方法
-1. 请下载对应语言版本的 `plex-scanner.py` 和 `config.ini`（zh 为中文版，en 为英文版）。
-2. 请按需要参考说明编辑 `config.ini` 并保存编辑。
-3. 请在终端、CMD、或 SSH 中通过以下命令运行 `plex-scanner.py` 脚本（请将 `/path/to/plex-scanner` 替换为 `plex-scanner.py` 所在文件夹的路径）。
-```
-cd /path/to/plex-scanner
-python3 plex-scanner.py
-```
-4. 请输入要扫描的文件夹名称（多个文件夹名称用分号隔开），按回车即可。
+1. 将仓库克隆或下载到计算机上的一个目录中。
+2. 修改 `start.command (Mac)` 或 `start.bat (Win)` 中的路径，以指向您存放 `plex-scanner.py` 脚本的目录。
+3. 打开 `config.ini`，填写您的 Plex 服务器地址（`address`）和 [X-Plex-Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)（`token`），按照需要选填其他配置选项。
+4. 双击运行 `start.command` 或 `start.bat` 脚本以执行 `plex-scanner.py` 脚本。
+5. 按照提示输入 `文件夹名称`，按回车。
+6. 脚本会根据配置文件触发 Plex 扫描对应的文件夹，并在控制台显示扫描结果（您也可以在服务器的「设置 - 状态 - 警告」中查看扫描记录）。
 
 ## 注意事项
 - 请确保您提供了正确的 Plex 服务器地址和 [X-Plex-Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)。
