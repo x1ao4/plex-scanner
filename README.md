@@ -28,7 +28,7 @@
 
 ## 运行条件
 - 安装了 Python 3.0 或更高版本。
-- 安装了必要的第三方库：requests。（可以通过 `pip install requests` 安装）
+- 安装了必要的第三方库：requests。（可以通过 `pip3 install requests` 安装）
 
 ## 配置文件
 在运行脚本前，请先打开配置文件 `config.ini`，参照以下提示（示例）进行配置。
