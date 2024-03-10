@@ -113,7 +113,7 @@ plex-scanner 提供了两种设置目录前缀的方式：`[directories]` 和 `[
 <br>
 
 # plex-scanner
-Due to Plex’s native lack of support for automatic and partial scanning of mounted directories, it’s inconvenient for us to manage media files from mounted directories in our media library. New files will not be automatically added to the library. We often need to manually scan/refresh or schedule scans to add new files from mounted directories to the library, which is very inconvenient for cloud drive users.
+Due to Plex's native lack of support for automatic and partial scanning of mounted cloud storage, WebDAV, and other non-local storage solutions on local systems or devices, it’s inconvenient for us to manage media files from mounted directories in our media library. New files will not be automatically added to the library. We often need to manually scan/refresh or schedule scans to add new files from mounted directories to the library, which is very inconvenient for cloud drive users.
 
 Although there are already some means to indirectly achieve functions similar to automatic scanning and partial scanning, such as CloudDrive’s file change notifications, or other scripts that periodically traverse or scan specified directories, there may also be certain limitations. So, I wrote a script myself that can quickly implement partial scanning in a more convenient, flexible, and faster way by manually entering the folder name.
 
