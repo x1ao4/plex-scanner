@@ -40,8 +40,10 @@ address = http://127.0.0.1:32400
 token = xxxxxxxxxxxxxxxxxxxx
 
 [mode]
-# 连续扫描模式的开关，如果设置为 True，可以连续多次请求扫描，如果设置为 False，则会在处理请求后结束运行
+# 连续扫描模式的开关，如果设置为 True，可以连续多次请求扫描；如果设置为 False，则会在处理请求后结束运行
 continuous_mode = True
+# 本机模式的开关，当脚本与 Plex 服务器在相同设备/系统下运行时，设置为 True；在不同设备/系统下运行时，设置为 False
+local_mode = True
 
 [directories]
 # 指定需要进行扫描的文件夹的上级目录，格式为 库名 = 目录1；目录2；目录3
@@ -61,10 +63,14 @@ libraries = 电影；电视剧；综艺
 配置文件中只有 `[server]` 和 `[mode]` 是必填项目，其他项目请按需设置，可以留空。
 
 ## 工作原理
-plex-scanner 的工作原理是通过配置文件中的 `[directories]`、`[libraries]` 和 `[exclude_directories]` 筛选出目录前缀，然后加上用户提供的 `文件夹名称` 构建出需要进行扫描的文件夹的可能路径，然后通过检查这些路径是否存在，筛选出需要扫描的文件夹的真实路径并进行扫描。
+plex-scanner 的工作原理是通过配置文件中的 `[directories]`、`[libraries]` 和 `[exclude_directories]` 筛选出目录前缀，然后加上用户提供的 `文件夹名称` 构建出需要进行扫描的文件夹的可能路径，然后通过检查这些路径是否存在（当 `local_mode = True` 时），筛选出需要扫描的文件夹的真实路径并进行扫描。
 
 例如当配置如下时：
 ```
+[mode]
+continuous_mode = True
+local_mode = True
+
 [directories]
 电影 = /Users/x1ao4/Media/阿里资源主/影视/电影
 电视剧 = /Users/x1ao4/Media/阿里资源主/影视/电视剧；/Users/x1ao4/Media/迅雷云盘/电视剧
@@ -83,7 +89,7 @@ libraries =
 /Users/x1ao4/Media/迅雷云盘/电视剧/乱世佳人 (1939)
 /Users/x1ao4/Media/阿里资源主/影视/综艺/乱世佳人 (1939)
 ```
-然后排除不存在的目录，筛选出真实存在的文件夹路径 `/Users/x1ao4/Media/阿里资源主/影视/电影/乱世佳人 (1939)` 进行扫描。
+然后排除不存在的目录，筛选出真实存在的文件夹路径 `/Users/x1ao4/Media/阿里资源主/影视/电影/乱世佳人 (1939)` 进行扫描。若 `local_mode = False` 则会扫描这四个文件夹，虽然另外三个文件夹并不存在。
 
 plex-scanner 提供了两种设置目录前缀的方式：`[directories]` 和 `[libraries]`。其实这两个选项就是用来设置更新文件可能存在的目录范围的，选其一进行配置即可。
 
@@ -92,22 +98,30 @@ plex-scanner 提供了两种设置目录前缀的方式：`[directories]` 和 `[
 
 简单说就是需要手动扫描的目录较少可以选择配置 `[directories]`，较多可以选择配置 `[libraries]` 和 `[exclude_directories]`，若这三个选项全部留空（默认设置），表示会使用服务器上的所有库的所有目录作为目录前缀，然后与用户提供的文件夹名称分别进行配对，找出需要被扫描的文件夹进行扫描。
 
-配置时需要填写的目录也就是你在媒体库添加文件夹时使用的目录，例如：
+### 本机模式
+你需要注意一下 `local_mode` 这个配置选项，他会影响脚本的工作方式。脚本中有一段代码的功能是检查文件夹是否存在，这就要求脚本可以访问到 Plex 媒体库文件的存储目录，也就是说只有在安装 Plex 服务器的设备或系统上运行 plex-scanner 才能正确判断文件夹是否存在；若脚本无法访问媒体文件的存储位置，就会将所有文件夹路径视为不存在，不会进行扫描。所以你需要根据使用环境设置正确的模式。
+
+- `local_mode = True`：当脚本与 Plex 服务器在同一设备上运行并且可以访问到媒体文件的存储目录时，请启用本机模式，在该模式下，脚本将排除不存在的目录，只扫描确实存在的文件夹。
+- `local_mode = False`：当脚本与 Plex 服务器在不同的设备或系统上运行并且无法访问媒体文件的存储目录时，请关闭本机模式，此时脚本将对构建的所有目录进行扫描，不论该文件夹是否存在。
+
+不论哪种模式，都不会扫描不应该被扫描的文件，如果脚本扫描了不存在的文件夹，除了会在「警告」中显示一条扫描记录以外，唯一的不足是可能会触发对应的库对部分项目执行刷新元数据的操作。
+
+配置时需要填写的目录也就是你在媒体库添加文件夹时使用的目录，库名也要与 Plex 内一致，例如：
 
 <img width="100%" alt="dir1" src="https://github.com/x1ao4/plex-scanner/assets/112841659/337e46a1-2350-4c31-abb1-a6addd560cb8">
 
 ## 使用方法
 1. 将仓库克隆或下载到计算机上的一个目录中。
-2. 修改 `start.command (Mac)` 或 `start.bat (Win)` 中的路径，以指向您存放 `plex-scanner.py` 脚本的目录。
-3. 打开 `config.ini`，填写您的 Plex 服务器地址（`address`）和 [X-Plex-Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)（`token`），按照需要选填其他配置选项。
+2. 修改 `start.command (Mac)` 或 `start.bat (Win)` 中的路径，以指向你存放 `plex-scanner.py` 脚本的目录。
+3. 打开 `config.ini`，填写你的 Plex 服务器地址（`address`）和 [X-Plex-Token](https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/)（`token`），按照需要选填其他配置选项。
 4. 双击运行 `start.command` 或 `start.bat` 脚本以执行 `plex-scanner.py` 脚本。
 5. 按照提示输入 `文件夹名称`，按回车。
-6. 脚本会根据配置文件触发 Plex 扫描对应的文件夹，并在控制台显示扫描结果（您也可以在服务器的「设置 - 状态 - 警告」中查看扫描记录）。若没有返回扫描结果则表示扫描失败，请检查您输入的文件夹名称或配置范围是否有误。
+6. 脚本会根据配置文件触发 Plex 扫描对应的文件夹，并在控制台显示扫描结果（你也可以在服务器的「设置 - 状态 - 警告」中查看扫描记录）。若没有返回扫描结果则表示扫描失败，请检查你输入的文件夹名称或配置范围是否有误。
 
 ## 注意事项
-- 请确保您提供了正确的 Plex 服务器地址和 X-Plex-Token。
-- 请确保您提供了正确的库名、目录与文件夹名。
-- 请确保运行脚本的设备可以连接到您的服务器。
+- 请确保你提供了正确的 Plex 服务器地址和 X-Plex-Token。
+- 请确保你提供了正确的库名、目录与文件夹名。
+- 请确保运行脚本的设备可以连接到你的服务器。
 - 脚本在某些情况下会触发媒体库刷新其他项目的元数据，但并不会触发非指定文件夹的扫描动作。
 - 在输入文件夹名称时若使用了删除键，会导致无法正确识别文件夹名称，请确保输入过程中不要输错字符，最好直接复制粘贴。
 <br>
@@ -156,6 +170,8 @@ token = xxxxxxxxxxxxxxxxxxxx
 [mode]
 # Switch for continuous scanning mode, if set to True, multiple scan requests can be made continuously; if set to False, the script will end after processing the request
 continuous_mode = True
+# Switch for local mode, set to True when the script and Plex server run on the same device/system; set to False when they run on different devices/systems
+local_mode = True
 
 [directories]
 # Specify the parent directories of the folders to be scanned, formatted as LibraryName = Directory1;Directory2;Directory3
@@ -175,10 +191,14 @@ Variety = /Users/x1ao4/Media/PikPak/Variety
 Only `[server]` and `[mode]` are required items in the configuration file, other items can be set as needed, or left blank.
 
 ## How the Script Works
-plex-scanner works by using the `[directories]`, `[libraries]`, and `[exclude_directories]` in the configuration file to filter out directory prefixes. It then combines these with the `folder name` provided by the user to construct potential paths for the folders that need to be scanned. By checking whether these paths exist, it filters out the actual paths of the folders that need to be scanned and performs the scanning.
+plex-scanner works by using the `[directories]`, `[libraries]`, and `[exclude_directories]` in the configuration file to filter out directory prefixes. It then combines these with the `folder name` provided by the user to construct potential paths for the folders that need to be scanned. By checking whether these paths exist (when `local_mode = True`), it filters out the actual paths of the folders that need to be scanned and performs the scanning.
 
 For example, when the configuration is as follows:
 ```
+[mode]
+continuous_mode = True
+local_mode = True
+
 [directories]
 Movies = /Users/x1ao4/Media/Ali/Movies
 TV = /Users/x1ao4/Media/Ali/TV;/Users/x1ao4/Media/Xunlei/TV
@@ -197,7 +217,8 @@ If the user enters the folder name `Gone with the Wind (1939)`, the script will 
 /Users/x1ao4/Media/Xunlei/TV/Gone with the Wind (1939)
 /Users/x1ao4/Media/Ali/Variety/Gone with the Wind (1939)
 ```
-Then exclude directories that do not exist, filter out the real existing folder path `/Users/x1ao4/Media/Ali/Movies/Gone with the Wind (1939)` for scanning.
+Then exclude directories that do not exist, filter out the real existing folder path `/Users/x1ao4/Media/Ali/Movies/Gone with the Wind (1939)` for scanning. 
+If `local_mode = False`, it will scan these four folders, even though the other three folders do not exist.
 
 plex-scanner provides two ways to set the directory prefix: `[directories]` and `[libraries]`. In fact, these two options are used to set the directory range where the updated files may exist, and you can choose one to configure.
 
@@ -206,7 +227,15 @@ plex-scanner provides two ways to set the directory prefix: `[directories]` and 
 
 In simple terms, if there are fewer directories that need manual scanning, you can choose to configure `[directories]`; if there are more directories, you can choose to configure `[libraries]` and `[exclude_directories]`. If all three options are left blank (default settings), it means that all directories of all libraries on the server will be used as directory prefixes, and then matched with the folder names provided by the user to find out the folders that need to be scanned.
 
-The directory you need to fill in when configuring is the directory you used when adding folders to the media library, for example:
+### Local Mode
+`local_mode` is a setting that changes how this script behaves. There’s a part of the script that checks if a folder exists. This means that the script needs to be able to access the location where your Plex media files are stored. So, if the script and the Plex server are running on the same device, it can correctly check if a folder exists. But if the script can’t access the media file storage location, it will consider all folder paths as non-existent and won’t perform any scanning. So, you need to set the right mode based on your setup.
+
+- `local_mode = True`: Enable this mode when the script and Plex server run on the same device, and the script have access to the storage directory of media files. In this mode, the script skips non-existent folders and only scans those that truly exist.
+- `local_mode = False`: Disable this mode when the script and Plex server run on different devices or systems, or the script cannot access the storage directory of media files. In this scenario, the script scans all constructed directories, irrespective of whether the folders exist or not.
+
+No matter which mode you’re in, the script won’t scan files that shouldn’t be scanned. If the script scans a non-existent folder, the only downside is that it might trigger the corresponding library to refresh the metadata of some items.
+
+The directory to be filled in during configuration is the directory you use when adding folders to your media library. The library name should also match the one in Plex. For example:
 
 <img width="100%" alt="dir2" src="https://github.com/x1ao4/plex-scanner/assets/112841659/1a81715a-7581-4210-92a3-86ca68d14a74">
 
