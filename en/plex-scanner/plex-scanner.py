@@ -11,8 +11,9 @@ config.read('config.ini')
 plex_server = config.get('server', 'address')
 plex_token = config.get('server', 'token')
 
-# Get the status of the continuous scanning mode switch
+# Get Running Mode
 continuous_mode = config.getboolean('mode', 'continuous_mode')
+local_mode = config.getboolean('mode', 'local_mode')
 
 # Check if [directories] exists
 if config.has_section('directories'):
@@ -71,8 +72,8 @@ def refresh_plex_folder(folder_name):
         for folder_prefix in folder_prefixes:
             folder_path = os.path.join(folder_prefix, folder_name)
 
-            # Check if the folder exists
-            if not os.path.isdir(folder_path):
+            # When local mode is enabled, check if the folder exists
+            if local_mode and not os.path.isdir(folder_path):
                 continue
 
             # Construct the request URL
