@@ -11,8 +11,9 @@ config.read('config.ini')
 plex_server = config.get('server', 'address')
 plex_token = config.get('server', 'token')
 
-# 获取连续扫描模式的开关状态
+# 获取运行模式
 continuous_mode = config.getboolean('mode', 'continuous_mode')
+local_mode = config.getboolean('mode', 'local_mode')
 
 # 检查 [directories] 是否存在
 if config.has_section('directories'):
@@ -71,8 +72,8 @@ def refresh_plex_folder(folder_name):
         for folder_prefix in folder_prefixes:
             folder_path = os.path.join(folder_prefix, folder_name)
 
-            # 检查文件夹是否存在
-            if not os.path.isdir(folder_path):
+            # 当本机模式开启时，检查文件夹是否存在
+            if local_mode and not os.path.isdir(folder_path):
                 continue
 
             # 构造请求 URL
