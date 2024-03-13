@@ -2,10 +2,14 @@ import os
 import requests
 import configparser
 import xml.etree.ElementTree as ET
+from pathlib import Path
+
+# Define the configuration file path
+config_file: Path = Path(__file__).parent / 'config.ini'
 
 # Read the configuration file
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read(config_file)
 
 # Get the server address and token
 plex_server = config.get('server', 'address')
